@@ -1,6 +1,6 @@
 # Install dependencies.
 import subprocess
-subprocess.call(['python3', 'setup.py'])
+subprocess.call(['python', 'setup.py'])
 
 import sys
 import os
@@ -16,7 +16,7 @@ def onStatus(status):
 if __name__ == "__main__":
     arparser = argparse.ArgumentParser(description='Grocery Digital Coupons.')
     arparser.add_argument('--config', type=str, default='shoprite', help='Config section to read login from.')
-    arparser.add_argument('--store', type=str, default='shoprite', nargs='?', help='Store to clip coupons [shoprite, stop_and_shop].')
+    arparser.add_argument('--store', type=str, default='shoprite', nargs='?', help='Store to clip coupons [shoprite, acme, stop_and_shop].')
     arparser.add_argument('--user', type=str, nargs='?', help='Login username or read from config.ini.')
     arparser.add_argument('--password', type=str, nargs='?', help='Login password or read from config.ini.')
     arparser.add_argument('--notify', type=str, default=None, nargs='?', help='Phone number to send a text message summary of results.')
@@ -35,7 +35,9 @@ if __name__ == "__main__":
         grocery_coupons.shoprite(email, password, phone, delay, onStatus)
     elif args.store == 'stop_and_shop':
         grocery_coupons.stop_and_shop(email, password, phone, delay, onStatus)
+    elif args.store == 'acme':
+        grocery_coupons.acme(email, password, phone, delay, onStatus)
     elif args.store == 'help':
-        print('Usage: client.py [shoprite | stop_and_shop]')
+        print('Usage: client.py [shoprite | acme | stop_and_shop]')
     else:
         print('Unknown store: ' + args.store)

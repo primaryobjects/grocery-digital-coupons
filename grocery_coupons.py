@@ -181,7 +181,7 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                             result['screenshot'] = browser.get_screenshot_as_base64()
                         callback(result)
 
-                    time.sleep(.250)
+                    time.sleep(.5)
 
                 if callback:
                     result['screenshot'] = browser.get_screenshot_as_base64()
@@ -269,6 +269,111 @@ def stop_and_shop(email, password, phone = None, delay = 10, callback = None, co
     if callback:
         result['message'] = 'Complete!'
         callback(result)
+
+    browser.close()
+
+    return result
+
+def acme(email, password, phone = None, delay = 10, callback = None):
+    result = { 'email': email, 'existingCount': 0, 'count': 0, 'message': None, 'screenshot': None }
+
+    initialize()
+
+    if callback:
+        result['message'] = 'Navigating to home page.'
+        callback(result)
+
+    try:
+        browser.get('https://www.acmemarkets.com/account/sign-in.html?goto=/content/www/acmemarkets/en/justforu/coupons-deals.html')
+
+        if callback:
+            result['message'] = 'Locating sign-in page.'
+            callback(result)
+
+            # Wait for page load.
+            WebDriverWait(browser, delay).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '#label-email'))
+            )
+
+        # Login
+        if callback:
+            result['message'] = 'Entering login details.'
+            callback(result)
+
+        # Send login info.
+        browser.find_element_by_id('label-email').send_keys(email)
+        browser.find_element_by_id('label-password').send_keys(password)
+        browser.find_element_by_id('label-password').send_keys(Keys.RETURN)
+
+        if callback:
+            result['message'] = 'Signing in.'
+            result['screenshot'] = browser.get_screenshot_as_base64()
+            callback(result)
+
+        # Wait until the site loads, find the welcome page or error message.
+        WebDriverWait(browser, delay).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, 'button.load-more'))
+        )
+
+        # Read all coupons on the current page, then process all subsequent pages by clicking Next, until no more pages.
+        if callback:
+            result['message'] = 'Reading coupons.'
+            callback(result)
+
+        try:
+            btnLoadMore = browser.find_element_by_css_selector('button.load-more');
+            while btnLoadMore:
+                btnLoadMore.click();
+                time.sleep(1)
+                try:
+                    btnLoadMore = browser.find_element_by_css_selector('button.load-more');
+                except:
+                    break
+
+            result['existingCount'] = len(browser.find_elements_by_class_name('coupon-clipped-container'))
+            result['screenshot'] = browser.get_screenshot_as_base64()
+
+            # Click all the buttons to add the coupons to your card
+            list_of_coupon_buttons = browser.find_elements_by_css_selector("button.grid-coupon-btn")
+
+            for count, coupon_button in enumerate(list_of_coupon_buttons, start=1):
+                try:
+                    # Click the "Load to Card" button.
+                    coupon_button.click()
+
+                    if callback:
+                        result['count'] += 1
+                        result['message'] = 'Added ' + str(result['count']) + '. Already clipped ' + str(result['existingCount']) + '.'
+                        if count % 10 == 0:
+                            result['screenshot'] = browser.get_screenshot_as_base64()
+                        callback(result)
+
+                    time.sleep(.25)
+                except:
+                    continue
+
+            if callback:
+                result['screenshot'] = browser.get_screenshot_as_base64()
+                callback(result)
+        except Exception as e:
+            print(e)
+
+        if callback:
+            result['message'] = 'Complete!'
+            if phone and result['count'] > 0:
+                summary = 'Couponfire clipped ' + str(result['count']) + ' coupons. You now have ' + str(result['count'] + result['existingCount']) + ' total.'
+                recipient = Textbelt.Recipient(phone)
+                response = recipient.send(summary)
+                print(summary)
+                print(response)
+            callback(result)
+    except Exception as e:
+        if callback:
+            print(e)
+            result['message'] = 'Error'
+            result['error'] = repr(e)
+            result['screenshot'] = browser.get_screenshot_as_base64()
+            callback(result)
 
     browser.close()
 
