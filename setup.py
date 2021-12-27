@@ -1,6 +1,5 @@
 import pip
 from pip._internal import main as pipmain
-from chromedriver import get_driver
 
 def import_or_install(package):
     try:
@@ -16,6 +15,7 @@ import_or_install('flask_sslify')
 import_or_install('PyJWT')
 
 # Install chromedriver.
+from chromedriver import get_driver
 driver = get_driver()
 if driver:
     print('Loaded chromedriver successfully.')

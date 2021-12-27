@@ -66,7 +66,7 @@ def login():
             # Collect coupons.
             onCollect(username, password)
 
-    return jsonify({ 'token': token.strip().decode() }) if token else jsonify({ 'error': 'Invalid username or password.' }), 200 if token else 401
+    return jsonify({ 'token': token.strip() }) if token else jsonify({ 'error': 'Invalid username or password.' }), 200 if token else 401
 
 @app.route('/api/coupons', methods = ['POST'])
 def coupons():

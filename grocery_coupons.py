@@ -17,7 +17,7 @@ def initialize():
 
     options = webdriver.ChromeOptions()
     options.binary_location = path
-    options.add_experimental_option('w3c', False)
+    #options.add_experimental_option('w3c', False)
     #if path:
     #    options.add_argument('headless')
 
