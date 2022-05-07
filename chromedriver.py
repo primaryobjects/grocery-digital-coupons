@@ -140,9 +140,23 @@ def get_chrome_version():
             install_path = "/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
         elif platform == "win32":
             # Windows...
-            stream = os.popen('reg query "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"')
-            output = stream.read()
-            version = extract_version(output)
+            try:
+                # Try registry key.
+                stream = os.popen('reg query "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"',
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT)
+                output = stream.read()
+                version = extract_version(output)
+            except Exception as ex:
+                # Try folder path.
+                paths = [f.path for f in os.scandir('C:\\Program Files\\Google\\Chrome\\Application') if f.is_dir()]
+                for path in paths:
+                    filename = os.path.basename(path)
+                    pattern = '\d+\.\d+\.\d+\.\d+'
+                    match = re.search(pattern, filename)
+                    if match and match.group():
+                        # Found a Chrome version.
+                        version = match.group(0)
     except Exception as ex:
         print(ex)
 
