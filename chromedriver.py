@@ -115,7 +115,7 @@ def get_platform_filename():
 
     return filename
 
-def extract_version(output):
+def extract_version_registry(output):
     try:
         google_version = ''
         for letter in output[output.rindex('DisplayVersion    REG_SZ') + 24:]:
@@ -126,6 +126,22 @@ def extract_version(output):
         return(google_version.strip())
     except TypeError:
         return
+
+def extract_version_folder():
+    # Check if the Chrome folder exists in the x32 or x64 Program Files folders.
+    for i in range(2):
+        path = 'C:\\Program Files' + (' (x86)' if i else '') +'\\Google\\Chrome\\Application'
+        if os.path.isdir(path):
+            paths = [f.path for f in os.scandir(path) if f.is_dir()]
+            for path in paths:
+                filename = os.path.basename(path)
+                pattern = '\d+\.\d+\.\d+\.\d+'
+                match = re.search(pattern, filename)
+                if match and match.group():
+                    # Found a Chrome version.
+                    return match.group(0)
+
+    return None
 
 def get_chrome_version():
     version = None
@@ -142,21 +158,12 @@ def get_chrome_version():
             # Windows...
             try:
                 # Try registry key.
-                stream = os.popen('reg query "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"',
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT)
+                stream = os.popen('reg query "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"')
                 output = stream.read()
-                version = extract_version(output)
+                version = extract_version_registry(output)
             except Exception as ex:
                 # Try folder path.
-                paths = [f.path for f in os.scandir('C:\\Program Files\\Google\\Chrome\\Application') if f.is_dir()]
-                for path in paths:
-                    filename = os.path.basename(path)
-                    pattern = '\d+\.\d+\.\d+\.\d+'
-                    match = re.search(pattern, filename)
-                    if match and match.group():
-                        # Found a Chrome version.
-                        version = match.group(0)
+                version = extract_version_folder()
     except Exception as ex:
         print(ex)
 
