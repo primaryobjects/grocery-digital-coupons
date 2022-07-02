@@ -30,6 +30,7 @@ def get_driver():
         try:
             options = webdriver.ChromeOptions()
             options.add_argument('--headless')
+            options.binary_location = 'C:\Program Files\Google\Chrome Beta\Application\chrome.exe'
             driver = webdriver.Chrome(options=options, executable_path='./chromedriver')
         except SessionNotCreatedException as e:
             if 'This version of ChromeDriver' in e.msg:

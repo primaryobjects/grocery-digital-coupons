@@ -14,7 +14,7 @@ def initialize():
     global browser
 
     path = os.getenv('GOOGLE_CHROME_SHIM') or None
-
+    path = 'C:\Program Files\Google\Chrome Beta\Application\chrome.exe'
     options = webdriver.ChromeOptions()
     options.binary_location = path
     #options.add_experimental_option('w3c', False)
