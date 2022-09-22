@@ -132,6 +132,24 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                 EC.visibility_of_element_located((By.CLASS_NAME, "coupon-item"))
             )
 
+            i = 0
+            while i < 5:
+                if callback:
+                    result['message'] = 'Checking for Load to Card button.'
+                    callback(result)
+                login_fields = browser.find_elements(By.CSS_SELECTOR, "a.login-to-load")
+                if len(login_fields):
+                    if callback:
+                        result['message'] = 'Reloading page (' + str(i+1) + '/5).'
+                        callback(result)
+
+                    # Reload the browser, since we're already logged in.
+                    browser.refresh()
+                    time.sleep(5)
+                    i = i + 1
+                else:
+                    break
+
             # Read all coupons on the current page, then process all subsequent pages by clicking Next, until no more pages.
             if callback:
                 result['message'] = 'Reading coupons.'
