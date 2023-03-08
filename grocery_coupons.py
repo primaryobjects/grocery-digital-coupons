@@ -78,8 +78,8 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
 
         # Send login info.
         browser.find_elements(By.ID, 'Email')[0].send_keys(email)
-        browser.find_elements(By.ID, 'Password')[0].send_keys(password)
-        browser.find_elements(By.ID, 'Password')[0].send_keys(Keys.RETURN)
+        browser.find_elements(By.ID, 'password')[0].send_keys(password)
+        browser.find_elements(By.ID, 'password')[0].send_keys(Keys.RETURN)
 
         if callback:
             result['message'] = 'Signing in.'
@@ -133,14 +133,14 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
             )
 
             i = 0
-            while i < 5:
+            while i < 20:
                 if callback:
                     result['message'] = 'Checking for Load to Card button.'
                     callback(result)
                 login_fields = browser.find_elements(By.CSS_SELECTOR, "a.login-to-load")
                 if len(login_fields):
                     if callback:
-                        result['message'] = 'Reloading page (' + str(i+1) + '/5).'
+                        result['message'] = 'Reloading page (' + str(i+1) + '/20).'
                         callback(result)
 
                     # Reload the browser, since we're already logged in.
