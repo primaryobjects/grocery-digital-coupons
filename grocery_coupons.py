@@ -162,7 +162,10 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
             try:
                 btnShowAll = browser.find_elements(By.XPATH, "//div[contains(@class, 'coupon-app')]/descendant::button[contains(text(), 'Show All')]")
                 if len(btnShowAll) > 0:
-                    btnShowAll[0].click()
+                    result['message'] = 'Clicking Show All coupons (' + str(len(btnShowAll)) + ' instances).'
+                    callback(result)
+                    btnShowAll[len(btnShowAll) - 1].click()
+                    time.sleep(4)
 
                 result['existingCount'] = len(browser.find_elements(By.CLASS_NAME, 'clipped-coupon-circle'))
                 result['screenshot'] = browser.get_screenshot_as_base64()
