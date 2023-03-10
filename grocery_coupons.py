@@ -164,8 +164,8 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                 if len(btnShowAll) > 0:
                     result['message'] = 'Clicking Show All coupons (' + str(len(btnShowAll)) + ' instances).'
                     callback(result)
-                    btnShowAll[len(btnShowAll) - 1].click()
-                    time.sleep(4)
+                    btnShowAll[0].click()
+                    time.sleep(2)
 
                 result['existingCount'] = len(browser.find_elements(By.CLASS_NAME, 'clipped-coupon-circle'))
                 result['screenshot'] = browser.get_screenshot_as_base64()
