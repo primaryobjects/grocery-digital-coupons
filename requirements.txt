@@ -4,3 +4,4 @@ Flask
 gunicorn
 flask-sslify
 PyJWT
+undetected_chromedriver
