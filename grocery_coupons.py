@@ -1,5 +1,6 @@
 import os
 import time
+import undetected_chromedriver as uc
 from pytextbelt import Textbelt
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -22,7 +23,8 @@ def initialize():
     #    options.add_argument('headless')
 
     executable_path = 'chromedriver' if 'DYNO' in os.environ else './chromedriver'
-    browser = webdriver.Chrome(executable_path=executable_path, options = options)
+    #browser = webdriver.Chrome(executable_path=executable_path, options = options)
+    browser = uc.Chrome(executable_path=executable_path, options = options)
 
     print('Using ' + (path or executable_path))
 
