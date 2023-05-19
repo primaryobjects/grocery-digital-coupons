@@ -13,6 +13,7 @@ import_or_install('selenium')
 import_or_install('flask')
 import_or_install('flask_sslify')
 import_or_install('PyJWT')
+import_or_install('undetected_chromedriver')
 
 # Install chromedriver.
 from chromedriver import get_driver

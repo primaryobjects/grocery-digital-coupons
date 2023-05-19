@@ -1,12 +1,13 @@
 import os
 import time
+import undetected_chromedriver as uc
 from pytextbelt import Textbelt
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import UnexpectedAlertPresentException
+from selenium.common.exceptions import UnexpectedAlertPresentException, ElementClickInterceptedException
 
 browser = None
 
@@ -22,7 +23,8 @@ def initialize():
     #    options.add_argument('headless')
 
     executable_path = 'chromedriver' if 'DYNO' in os.environ else './chromedriver'
-    browser = webdriver.Chrome(executable_path=executable_path, options = options)
+    #browser = webdriver.Chrome(executable_path=executable_path, options = options)
+    browser = uc.Chrome(executable_path=executable_path, options = options)
 
     print('Using ' + (path or executable_path))
 
@@ -50,20 +52,16 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
             result['message'] = 'Locating sign-in page.'
             callback(result)
 
-        for i in range(3):
-            try:
-                # Wait for page load.
-                WebDriverWait(browser, delay).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, 'a.login-to-load'))
-                )
-                break
-            except Exception as e:
-                result['message'] = 'Unable to load sign-in page, reloading page. Attempt ' + str(i+1) + '/3.'
-                result['screenshot'] = browser.get_screenshot_as_base64()
-                callback(result)
-                browser.refresh()
+        browser.refresh()
 
-        browser.find_elements_by_css_selector('a.login-to-load')[0].click()
+        #browser.switch_to.frame(browser.find_element(By.ID, 'sr-digital-coupons'))
+        WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
+
+        WebDriverWait(browser, 60).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "a.login-to-load"))
+        )
+
+        browser.find_elements(By.CSS_SELECTOR, "a.login-to-load")[0].click()
 
         if callback:
             result['message'] = 'Waiting for login page.'
@@ -81,14 +79,24 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
             callback(result)
 
         # Send login info.
-        browser.find_element_by_id('Email').send_keys(email)
-        browser.find_element_by_id('Password').send_keys(password)
-        browser.find_element_by_id('Password').send_keys(Keys.RETURN)
+        browser.find_elements(By.ID, 'Email')[0].send_keys(email)
+        browser.find_elements(By.ID, 'password')[0].send_keys(password)
+        browser.find_elements(By.ID, 'password')[0].send_keys(Keys.RETURN)
 
         if callback:
             result['message'] = 'Signing in.'
             result['screenshot'] = browser.get_screenshot_as_base64()
             callback(result)
+
+        # Check for store selection modal.
+        time.sleep(5)
+        if not handle_shoprite_store_selection_modal(browser, delay, result, callback):
+            if callback:
+                result['message'] = 'Switching to main iframe.'
+                callback(result)
+
+            # Just switch to iframe and continue.
+            WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
 
         # Wait until the site loads, find the welcome page or error message.
         WebDriverWait(browser, delay).until(
@@ -100,7 +108,7 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
             callback(result)
 
         # Check if the login succeeded.
-        fields = browser.find_elements_by_xpath("//*[contains(text(), 'incorrect') or contains(text(), 'try again')]")
+        fields = browser.find_elements(By.XPATH, "//*[contains(text(), 'incorrect') or contains(text(), 'try again')]")
         if len(fields) > 0:
             # Invalid login?
             result['message'] = 'Error'
@@ -126,33 +134,58 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                 EC.visibility_of_element_located((By.CLASS_NAME, "coupon-item"))
             )
 
+            i = 0
+            while i < 20:
+                if callback:
+                    result['message'] = 'Checking for Load to Card button.'
+                    callback(result)
+                login_fields = browser.find_elements(By.CSS_SELECTOR, "a.login-to-load")
+                if len(login_fields):
+                    if callback:
+                        result['message'] = 'Reloading page (' + str(i+1) + '/20).'
+                        callback(result)
+
+                    # Reload the browser, since we're already logged in.
+                    browser.refresh()
+                    time.sleep(4)
+
+                    # Just switch to iframe and continue.
+                    WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
+
+                    i = i + 1
+                else:
+                    break
+
             # Read all coupons on the current page, then process all subsequent pages by clicking Next, until no more pages.
             if callback:
                 result['message'] = 'Reading coupons.'
                 callback(result)
 
             try:
-                btnShowAll = browser.find_elements_by_xpath("//div[contains(@class, 'coupon-app')]/descendant::button[contains(text(), 'Show All')]")
+                btnShowAll = browser.find_elements(By.XPATH, "//div[contains(@class, 'coupon-app')]/descendant::button[contains(text(), 'Show All')]")
                 if len(btnShowAll) > 0:
+                    result['message'] = 'Clicking Show All coupons (' + str(len(btnShowAll)) + ' instances).'
+                    callback(result)
                     btnShowAll[0].click()
+                    time.sleep(2)
 
-                result['existingCount'] = len(browser.find_elements_by_class_name('clipped-coupon-circle'))
+                result['existingCount'] = len(browser.find_elements(By.CLASS_NAME, 'clipped-coupon-circle'))
                 result['screenshot'] = browser.get_screenshot_as_base64()
 
                 # Click all the buttons to add the coupons to your card
-                list_of_coupon_buttons = browser.find_elements_by_css_selector("a.available-to-clip:not(.ng-hide)")
+                list_of_coupon_buttons = browser.find_elements(By.CSS_SELECTOR, "a.available-to-clip:not(.ng-hide)")
 
                 for count, coupon_button in enumerate(list_of_coupon_buttons, start=1):
                     # Check for a modal notice dialog.
-                    modals = browser.find_elements_by_class_name('modal-dialog')
+                    modals = browser.find_elements(By.CLASS_NAME, 'modal-dialog')
                     if modals:
                         modal = modals[0]
 
                         # Find the dialog title.
-                        titles = modal.find_elements_by_class_name('modal-title')
+                        titles = modal.find_elements(By.CLASS_NAME, 'modal-title')
                         titleText = titles[0].text if titles else ''
 
-                        bodies = modal.find_elements_by_class_name('modal-body')
+                        bodies = modal.find_elements(By.CLASS_NAME, 'modal-body')
                         bodyText = bodies[0].text if bodies else ''
 
                         if callback:
@@ -160,12 +193,12 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                             callback(result)
 
                             # Try to find the 'OK' button, otherwise click the first button found.
-                            buttons = modal.find_elements_by_xpath("button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'ok')]")
+                            buttons = modal.find_elements(By.XPATH, "button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'ok')]")
                             if not buttons:
-                                buttons = modal.find_elements_by_xpath("//button[contains(text(), 'Close')]")
+                                buttons = modal.find_elements(By.XPATH, "//button[contains(text(), 'Close')]")
                                 if not buttons:
                                     # Just find the first button.
-                                    buttons = modal.find_elements_by_class_name('btn')
+                                    buttons = modal.find_elements(By.CLASS_NAME, 'btn')
 
                             if buttons:
                                 # Click the button to accept the dialog.
@@ -190,6 +223,8 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                 print("Dismissing alert " + repr(e))
                 alert = browser.switch_to_alert()
                 alert.accept()
+            except ElementClickInterceptedException as e:
+                print("Ignoring missed element " + repr(e))
             except Exception as e:
                 print(e)
 
@@ -251,7 +286,7 @@ def stop_and_shop(email, password, phone = None, delay = 10, callback = None, co
     )
 
     # Click all the buttons to add the coupons to your card
-    list_of_coupon_buttons = browser.find_elements_by_class_name('load-to-card')
+    list_of_coupon_buttons = browser.find_elements(By.CLASS_NAME, 'load-to-card')
 
     for count, coupon_button in enumerate(list_of_coupon_buttons, start=1):
         try:
@@ -301,9 +336,9 @@ def acme(email, password, phone = None, delay = 10, callback = None):
             callback(result)
 
         # Send login info.
-        browser.find_element_by_id('label-email').send_keys(email)
-        browser.find_element_by_id('label-password').send_keys(password)
-        browser.find_element_by_id('label-password').send_keys(Keys.RETURN)
+        browser.find_elements(By.ID, 'label-email')[0].send_keys(email)
+        browser.find_elements(By.ID, 'label-password')[0].send_keys(password)
+        browser.find_elements(By.ID, 'label-password')[0].send_keys(Keys.RETURN)
 
         if callback:
             result['message'] = 'Signing in.'
@@ -321,20 +356,20 @@ def acme(email, password, phone = None, delay = 10, callback = None):
             callback(result)
 
         try:
-            btnLoadMore = browser.find_element_by_css_selector('button.load-more');
+            btnLoadMore = browser.find_elements(By.CSS_SELECTOR, 'button.load-more')[0];
             while btnLoadMore:
                 btnLoadMore.click();
                 time.sleep(1)
                 try:
-                    btnLoadMore = browser.find_element_by_css_selector('button.load-more');
+                    btnLoadMore = browser.find_elements(By.CSS_SELECTOR, 'button.load-more')[0];
                 except:
                     break
 
-            result['existingCount'] = len(browser.find_elements_by_class_name('coupon-clipped-container'))
+            result['existingCount'] = len(browser.find_elements(By.CLASS_NAME, 'coupon-clipped-container'))
             result['screenshot'] = browser.get_screenshot_as_base64()
 
             # Click all the buttons to add the coupons to your card
-            list_of_coupon_buttons = browser.find_elements_by_css_selector("button.grid-coupon-btn")
+            list_of_coupon_buttons = browser.find_elements(By.CSS_SELECTOR, "button.grid-coupon-btn")
 
             for count, coupon_button in enumerate(list_of_coupon_buttons, start=1):
                 try:
@@ -378,3 +413,46 @@ def acme(email, password, phone = None, delay = 10, callback = None):
     browser.close()
 
     return result
+
+def handle_shoprite_store_selection_modal(browser, delay, result, callback):
+    modal = browser.find_elements(By.ID, 'modal-content')
+    if modal:
+        if callback:
+            result['message'] = 'Handling store selection modal.'
+            callback(result)
+
+        # Click the In Store button and the Make My Store button.
+        in_store_icons = modal[0].find_elements(By.XPATH, "//*[contains(text(), 'In Store')]")
+        click_first_interactable_element(in_store_icons)
+        make_buttons = modal[0].find_elements(By.XPATH, "//button[contains(text(), 'Make My Store')]")
+        click_first_interactable_element(make_buttons)
+
+        # Check if we need to click the digital coupons button to get to the page.
+        time.sleep(5)
+        digital_coupons_buttons = browser.find_elements(By.XPATH, "//button[contains(text(), 'Load to Card')]")
+        if digital_coupons_buttons:
+            click_first_interactable_element(digital_coupons_buttons)
+
+        # Click login to load button to make coupons available.
+        try:
+            WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
+            WebDriverWait(browser, 60).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "a.login-to-load"))
+            )
+            browser.find_elements(By.CSS_SELECTOR, "a.login-to-load")[0].click()
+        except Exception as e:
+            print(e)
+        return True
+    else:
+        return False
+
+def click_first_interactable_element(elements):
+    for element in elements:
+        if element.is_displayed() and element.is_enabled():
+            try:
+                element.click()
+                return
+            except ElementClickInterceptedException:
+                continue
+
+    raise Exception('No interactable elements found.')
