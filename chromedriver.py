@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException, SessionNotCreatedException
 import sys
@@ -30,7 +31,8 @@ def get_driver():
         try:
             options = webdriver.ChromeOptions()
             options.add_argument('--headless')
-            driver = webdriver.Chrome(options=options, executable_path='./chromedriver')
+            service = Service(executable_path='./chromedriver')
+            driver = webdriver.Chrome(options=options, service=service)
         except SessionNotCreatedException as e:
             if 'This version of ChromeDriver' in e.msg:
                 is_download = True
