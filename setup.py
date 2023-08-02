@@ -10,15 +10,16 @@ def import_or_install(package):
 # Install required dependencies.
 import_or_install('requests')
 import_or_install('selenium')
+import_or_install('seleniumbase')
 import_or_install('flask')
 import_or_install('flask_sslify')
 import_or_install('PyJWT')
 import_or_install('undetected_chromedriver')
 
 # Install chromedriver.
-from chromedriver import get_driver
-driver = get_driver()
-if driver:
-    print('Loaded chromedriver successfully.')
-else:
-    raise Exception("Error downloading chromedriver. If running on Windows, please run Python from a Windows Command Prompt (not WSL). See https://chromedriver.chromium.org/downloads")
+#from chromedriver import get_driver
+#driver = get_driver()
+#if driver:
+#    print('Loaded chromedriver successfully.')
+#else:
+#    raise Exception("Error downloading chromedriver. If running on Windows, please run Python from a Windows Command Prompt (not WSL). See https://chromedriver.chromium.org/downloads")

@@ -9,26 +9,29 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import UnexpectedAlertPresentException, ElementClickInterceptedException
+from seleniumbase import Driver
 
 browser = None
 
 def initialize():
     global browser
 
-    path = os.getenv('GOOGLE_CHROME_SHIM') or None
+    #path = os.getenv('GOOGLE_CHROME_SHIM') or None
 
-    options = webdriver.ChromeOptions()
-    options.binary_location = path
+    #options = webdriver.ChromeOptions()
+    #options.binary_location = path
     #options.add_experimental_option('w3c', False)
     #if path:
     #    options.add_argument('headless')
 
-    executable_path = 'chromedriver' if 'DYNO' in os.environ else './chromedriver'
-    service = Service(executable_path=executable_path)
+    #executable_path = 'chromedriver' if 'DYNO' in os.environ else './chromedriver'
+    #service = Service(executable_path=executable_path)
     #browser = webdriver.Chrome(executable_path=executable_path, options = options)
-    browser = uc.Chrome(options = options, service=service)
+    #browser = uc.Chrome(options = options, service=service)
 
-    print('Using ' + (path or executable_path))
+    browser = Driver(uc=True)
+
+    #print('Using ' + (path or executable_path))
 
 def test(email, password, delay = 10, callback = None):
     result = { 'email': email, 'existingCount': 0, 'count': 0, 'message': None, 'screenshot': None }
