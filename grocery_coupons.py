@@ -17,8 +17,8 @@ def initialize():
 
     path = os.getenv('GOOGLE_CHROME_SHIM') or None
 
-    options = webdriver.ChromeOptions()
-    options.binary_location = path
+    #options = webdriver.ChromeOptions()
+    #options.binary_location = path
     #options.add_experimental_option('w3c', False)
     #if path:
     #    options.add_argument('headless')
@@ -26,9 +26,12 @@ def initialize():
     executable_path = 'chromedriver' if 'DYNO' in os.environ else './chromedriver'
     service = Service(executable_path=executable_path)
     #browser = webdriver.Chrome(executable_path=executable_path, options = options)
-    browser = uc.Chrome(options = options, service=service)
 
-    print('Using ' + (path or executable_path))
+    browser = uc.Chrome(version_main=116)
+
+    # Custom user agent through execute_script -> fix for 3.5.3 and Chrome 117.
+    user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
+    browser.execute_cdp_cmd('Network.setUserAgentOverride', {'userAgent': user_agent})
 
 def test(email, password, delay = 10, callback = None):
     result = { 'email': email, 'existingCount': 0, 'count': 0, 'message': None, 'screenshot': None }
