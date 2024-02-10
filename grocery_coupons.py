@@ -27,7 +27,7 @@ def initialize():
     service = Service(executable_path=executable_path)
     #browser = webdriver.Chrome(executable_path=executable_path, options = options)
 
-    browser = uc.Chrome(version_main=116)
+    browser = uc.Chrome()
 
     # Custom user agent through execute_script -> fix for 3.5.3 and Chrome 117.
     user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
