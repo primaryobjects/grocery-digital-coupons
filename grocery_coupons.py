@@ -59,6 +59,8 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
 
         browser.refresh()
 
+        handle_shoprite_cookie_modal(browser, result, callback)
+
         #browser.switch_to.frame(browser.find_element(By.ID, 'sr-digital-coupons'))
         WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
 
@@ -453,6 +455,15 @@ def handle_shoprite_store_selection_modal(browser, delay, result, callback):
         return True
     else:
         return False
+
+def handle_shoprite_cookie_modal(browser, result, callback):
+    cookie_button = browser.find_elements(By.ID, 'onetrust-accept-btn-handler')
+    if cookie_button:
+        if callback:
+            result['message'] = 'Handling accept cookie modal.'
+            callback(result)
+
+        cookie_button[0].click()
 
 def click_first_interactable_element(elements):
     for element in elements:
