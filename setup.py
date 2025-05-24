@@ -8,6 +8,7 @@ def import_or_install(package):
         pipmain(['install', package])
 
 # Install required dependencies.
+import_or_install('setuptools')
 import_or_install('requests')
 import_or_install('selenium')
 import_or_install('flask')
