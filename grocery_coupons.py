@@ -81,7 +81,7 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
         # Login
         time.sleep(2)
         WebDriverWait(browser, 60).until(
-            EC.presence_of_element_located((By.ID, "Email"))
+            EC.presence_of_element_located((By.ID, "username"))
         )
 
         if callback:
@@ -89,7 +89,7 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
             callback(result)
 
         # Send login info.
-        browser.find_elements(By.ID, 'Email')[0].send_keys(email)
+        browser.find_elements(By.ID, 'username')[0].send_keys(email)
         browser.find_elements(By.ID, 'password')[0].send_keys(password)
         browser.find_elements(By.ID, 'password')[0].send_keys(Keys.RETURN)
 
