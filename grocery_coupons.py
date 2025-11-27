@@ -51,7 +51,7 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
         callback(result)
 
     try:
-        browser.get('https://coupons.shoprite.com')
+        safe_get(browser, 'https://coupons.shoprite.com')
 
         if callback:
             result['message'] = 'Locating sign-in page.'
@@ -475,3 +475,15 @@ def click_first_interactable_element(elements):
                 continue
 
     raise Exception('No interactable elements found.')
+
+def safe_get(driver, url, timeout=30):
+    for _ in range(3):
+        try:
+            driver.get(url)
+            WebDriverWait(driver, timeout).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
+            return
+        except Exception:
+            time.sleep(1)
+    raise
