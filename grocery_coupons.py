@@ -1,6 +1,7 @@
 import os
 import time
 import undetected_chromedriver as uc
+from chromedriver import get_chrome_version
 from pytextbelt import Textbelt
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -24,10 +25,14 @@ def initialize():
     #    options.add_argument('headless')
 
     executable_path = 'chromedriver' if 'DYNO' in os.environ else './chromedriver'
-    service = Service(executable_path=executable_path)
+    #service = Service(executable_path=executable_path)
     #browser = webdriver.Chrome(executable_path=executable_path, options = options)
 
-    browser = uc.Chrome()
+    # Determine version_main automatically when chromedriver expects a newer browser
+    version_main = None
+    browser_version = get_chrome_version()
+    version_main = int(browser_version.split('.')[0]) if browser_version else None
+    browser = uc.Chrome(version_main=version_main)
 
     # Custom user agent through execute_script -> fix for 3.5.3 and Chrome 117.
     user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
