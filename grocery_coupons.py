@@ -93,8 +93,20 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
             result['message'] = 'Entering login details.'
             callback(result)
 
-        # Send login info.
+        # Send username.
         browser.find_elements(By.ID, 'username')[0].send_keys(email)
+        browser.find_elements(By.ID, 'username')[0].send_keys(Keys.RETURN)
+
+        if callback:
+            result['message'] = 'Entered username.'
+            callback(result)
+
+        # Wait until the password field displays.
+        WebDriverWait(browser, delay).until(
+            EC.visibility_of_element_located((By.ID, 'password'))
+        )
+
+        # Send password.
         browser.find_elements(By.ID, 'password')[0].send_keys(password)
         browser.find_elements(By.ID, 'password')[0].send_keys(Keys.RETURN)
 
