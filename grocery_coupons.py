@@ -70,10 +70,10 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
         WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
 
         WebDriverWait(browser, 60).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "a.login-to-load"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-load-to-card"))
         )
 
-        browser.find_elements(By.CSS_SELECTOR, "a.login-to-load")[0].click()
+        browser.find_elements(By.CSS_SELECTOR, "button.btn-load-to-card")[0].click()
 
         if callback:
             result['message'] = 'Waiting for login page.'
