@@ -127,7 +127,7 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
 
         # Wait until the site loads, find the welcome page or error message.
         WebDriverWait(browser, delay).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, '.coupon-savings-count, .field-validation-error, .validation-summary-errors'))
+            EC.visibility_of_element_located((By.CSS_SELECTOR, '.coupon-summary-item-text'))
         )
 
         if callback:
@@ -149,7 +149,7 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                 callback(result)
 
             WebDriverWait(browser, delay).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, '.coupon-item-container'))
+                EC.visibility_of_element_located((By.CSS_SELECTOR, 'digital-coupons-coupon-list'))
             )
 
             if callback:
@@ -158,30 +158,30 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                 callback(result)
 
             WebDriverWait(browser, delay).until(
-                EC.visibility_of_element_located((By.CLASS_NAME, "coupon-item"))
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "digital-coupons-coupon-item"))
             )
 
-            i = 0
-            while i < 20:
-                if callback:
-                    result['message'] = 'Checking for Load to Card button.'
-                    callback(result)
-                login_fields = browser.find_elements(By.CSS_SELECTOR, "a.login-to-load")
-                if len(login_fields):
-                    if callback:
-                        result['message'] = 'Reloading page (' + str(i+1) + '/20).'
-                        callback(result)
+            # i = 0
+            # while i < 20:
+            #     if callback:
+            #         result['message'] = 'Checking for Load to Card button.'
+            #         callback(result)
+            #     login_fields = browser.find_elements(By.CLASS_NAME, "btn-load-to-card")
+            #     if len(login_fields):
+            #         if callback:
+            #             result['message'] = 'Reloading page (' + str(i+1) + '/20).'
+            #             callback(result)
 
-                    # Reload the browser, since we're already logged in.
-                    browser.refresh()
-                    time.sleep(4)
+            #         # Reload the browser, since we're already logged in.
+            #         browser.refresh()
+            #         time.sleep(4)
 
-                    # Just switch to iframe and continue.
-                    WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
+            #         # Just switch to iframe and continue.
+            #         WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
 
-                    i = i + 1
-                else:
-                    break
+            #         i = i + 1
+            #     else:
+            #         break
 
             # Read all coupons on the current page, then process all subsequent pages by clicking Next, until no more pages.
             if callback:
@@ -196,11 +196,11 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                     btnShowAll[0].click()
                     time.sleep(2)
 
-                result['existingCount'] = len(browser.find_elements(By.CLASS_NAME, 'clipped-coupon-circle'))
+                result['existingCount'] = len(browser.find_elements(By.CLASS_NAME, 'btn-loaded-to-card'))
                 result['screenshot'] = browser.get_screenshot_as_base64()
 
                 # Click all the buttons to add the coupons to your card
-                list_of_coupon_buttons = browser.find_elements(By.CSS_SELECTOR, "a.available-to-clip:not(.ng-hide)")
+                list_of_coupon_buttons = browser.find_elements(By.CSS_SELECTOR, "button.btn-load-to-card")
 
                 for count, coupon_button in enumerate(list_of_coupon_buttons, start=1):
                     # Check for a modal notice dialog.
