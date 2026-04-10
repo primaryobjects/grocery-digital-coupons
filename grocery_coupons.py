@@ -199,6 +199,36 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                 result['existingCount'] = len(browser.find_elements(By.CLASS_NAME, 'btn-loaded-to-card'))
                 result['screenshot'] = browser.get_screenshot_as_base64()
 
+                # Scroll through the infinite scroll container to load all coupons
+                if callback:
+                    result['message'] = 'Loading all coupons via infinite scroll...'
+                    callback(result)
+
+                scrollable_container = browser.find_elements(By.CLASS_NAME, 'scrollable-container')
+                if scrollable_container:
+                    container = scrollable_container[0]
+                    previous_count = 0
+                    while True:
+                        # Get current coupon count
+                        current_count = len(browser.find_elements(By.CSS_SELECTOR, "digital-coupons-coupon-item"))
+
+                        # Scroll to the bottom of the container
+                        browser.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", container)
+                        time.sleep(1)
+
+                        # Get new coupon count
+                        new_count = len(browser.find_elements(By.CSS_SELECTOR, "digital-coupons-coupon-item"))
+
+                        if callback:
+                            result['message'] = f'Loaded {new_count} coupons...'
+                            callback(result)
+
+                        # If no new coupons loaded, we've reached the end
+                        if new_count == current_count:
+                            break
+
+                        previous_count = new_count
+
                 # Click all the buttons to add the coupons to your card
                 list_of_coupon_buttons = browser.find_elements(By.CSS_SELECTOR, "button.btn-load-to-card")
 
