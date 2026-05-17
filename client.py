@@ -1,8 +1,3 @@
-# Install dependencies.
-import subprocess
-subprocess.call(['python', 'setup.py'])
-
-import sys
 import os
 import grocery_coupons
 import argparse

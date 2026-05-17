@@ -209,6 +209,14 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
                     container = scrollable_container[0]
                     previous_count = 0
                     while True:
+                        # Stop scrolling once we see the first Loaded button
+                        loaded_buttons = browser.find_elements(By.CSS_SELECTOR, "button.btn-loaded-to-card")
+                        if loaded_buttons:
+                            if callback:
+                                result['message'] = 'Loaded coupon detected — stopping scroll early.'
+                                callback(result)
+                            break
+
                         # Get current coupon count
                         current_count = len(browser.find_elements(By.CSS_SELECTOR, "digital-coupons-coupon-item"))
 

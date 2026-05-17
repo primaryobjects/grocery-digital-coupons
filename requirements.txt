@@ -1,0 +1,7 @@
+setuptools
+requests
+selenium
+flask
+flask_sslify
+PyJWT
+undetected_chromedriver

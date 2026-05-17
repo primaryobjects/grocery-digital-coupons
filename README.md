@@ -4,8 +4,9 @@ Automatically clip digital coupons from Shoprite and food store web sites.
 
 ## Quick Start
 
-1. Install the required software for [Python](https://www.python.org/downloads/) *(version 3.8.3)*.
+1. Install the required software for [Python](https://www.python.org/downloads/) *(version 3.14+)*.
 2. Download the [pip](https://bootstrap.pypa.io/get-pip.py) script and install it with `python get-pip.py`
+3. Install libraries: `pip install -r requirements.txt`
 3. Edit `config.ini` to include your login information.
 4. Run the script with `python client.py shoprite`
 
