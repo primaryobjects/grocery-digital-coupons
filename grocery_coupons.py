@@ -65,23 +65,22 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
         browser.refresh()
 
         handle_shoprite_cookie_modal(browser, result, callback)
+        if not handle_shoprite_login_prompt(browser, result, callback):
+            WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
 
-        #browser.switch_to.frame(browser.find_element(By.ID, 'sr-digital-coupons'))
-        WebDriverWait(browser, delay).until(EC.frame_to_be_available_and_switch_to_it((By.ID, "sr-digital-coupons")))
+            WebDriverWait(browser, 60).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-load-to-card"))
+            )
 
-        WebDriverWait(browser, 60).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "button.btn-load-to-card"))
-        )
+            browser.find_elements(By.CSS_SELECTOR, "button.btn-load-to-card")[0].click()
 
-        browser.find_elements(By.CSS_SELECTOR, "button.btn-load-to-card")[0].click()
+            if callback:
+                result['message'] = 'Waiting for login page.'
+                result['screenshot'] = browser.get_screenshot_as_base64()
+                callback(result)
 
-        if callback:
-            result['message'] = 'Waiting for login page.'
-            result['screenshot'] = browser.get_screenshot_as_base64()
-            callback(result)
-
-        time.sleep(2)
-        browser.refresh()
+            time.sleep(2)
+            browser.refresh()
 
         # Login
         time.sleep(2)
@@ -519,6 +518,44 @@ def handle_shoprite_cookie_modal(browser, result, callback):
             callback(result)
 
         cookie_button[0].click()
+
+
+def handle_shoprite_login_prompt(browser, result, callback):
+    prompt_selectors = [
+        (By.CSS_SELECTOR, "button[data-testid='signIn-button-testId']"),
+        (By.XPATH, "//button[contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'sign in or register')]"),
+        (By.XPATH, "//*[contains(@data-testid, 'signIn') or contains(@class, 'ButtonLogin')]//button[normalize-space(.)='Sign In or Register']"),
+        (By.XPATH, "//button[normalize-space(.)='Sign In or Register']"),
+    ]
+
+    for by, value in prompt_selectors:
+        try:
+            prompt_buttons = browser.find_elements(by, value)
+        except Exception:
+            continue
+
+        if not prompt_buttons:
+            continue
+
+        if callback:
+            result['message'] = 'Handling sign-in prompt.'
+            callback(result)
+
+        for button in prompt_buttons:
+            if not button.is_displayed() or not button.is_enabled():
+                continue
+
+            try:
+                button.click()
+                return True
+            except ElementClickInterceptedException:
+                try:
+                    browser.execute_script("arguments[0].click();", button)
+                    return True
+                except Exception:
+                    continue
+
+    return False
 
 def click_first_interactable_element(elements):
     for element in elements:
