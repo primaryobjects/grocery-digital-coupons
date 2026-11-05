@@ -84,17 +84,15 @@ def shoprite(email, password, phone = None, delay = 10, callback = None):
 
         # Login
         time.sleep(2)
-        WebDriverWait(browser, 60).until(
-            EC.presence_of_element_located((By.ID, "username"))
-        )
+        shoprite_email_field = get_shoprite_email_field(browser, 60)
 
         if callback:
             result['message'] = 'Entering login details.'
             callback(result)
 
         # Send username.
-        browser.find_elements(By.ID, 'username')[0].send_keys(email)
-        browser.find_elements(By.ID, 'username')[0].send_keys(Keys.RETURN)
+        shoprite_email_field.send_keys(email)
+        shoprite_email_field.send_keys(Keys.RETURN)
 
         if callback:
             result['message'] = 'Entered username.'
@@ -509,6 +507,17 @@ def handle_shoprite_store_selection_modal(browser, delay, result, callback):
         return True
     else:
         return False
+
+def get_shoprite_email_field(browser, delay):
+    WebDriverWait(browser, delay).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "input#identifier_email, input#username"))
+    )
+
+    email_fields = browser.find_elements(By.ID, 'identifier_email')
+    if not email_fields:
+        email_fields = browser.find_elements(By.ID, 'username')
+
+    return email_fields[0]
 
 def handle_shoprite_cookie_modal(browser, result, callback):
     cookie_button = browser.find_elements(By.ID, 'onetrust-accept-btn-handler')
